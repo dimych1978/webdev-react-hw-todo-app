@@ -1,15 +1,21 @@
-import { useState } from "react";
-
-export function AddTodoForm({ setTodos, todos }) {
-  const [newTodoText, setNewTodoText] = useState("");
-
-  const handleAddTodoClick = () => {
+import { useState } from 'react';
+import { addTodos } from '../api';
+import { useLoading } from '../hooks/useLoading';
+import { Spinner } from './Spinner';
+export function AddTodoForm({ setTodos }) {
+  const [newTodoText, setNewTodoText] = useState('');
+  const [isLoading, setIsLoading] = useLoading();
+  const handleAddTodoClick = async () => {
     if (!newTodoText) {
       return;
     }
 
-    setTodos([...todos, { id: Date.now(), text: newTodoText }]);
-    setNewTodoText("");
+    setIsLoading(true);
+    const newTodos = await addTodos(newTodoText);
+    setIsLoading(false);
+
+    setTodos(newTodos.todos);
+    setNewTodoText('');
   };
 
   return (
@@ -17,11 +23,14 @@ export function AddTodoForm({ setTodos, todos }) {
       <h3>Добавить задачу</h3>
       <input
         value={newTodoText}
-        onChange={(event) => {
+        onChange={event => {
           setNewTodoText(event.target.value);
         }}
       />
-      <button onClick={handleAddTodoClick}>Добавить задачу</button>
+      <button disabled={isLoading} onClick={handleAddTodoClick}>
+        {isLoading ? 'Задача добавляется' : 'Добавить задачу'}
+      </button>
+      <Spinner display={isLoading ? 'inline-block' : 'none'} />
     </div>
   );
 }
